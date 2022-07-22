@@ -131,12 +131,31 @@ The mean and median number of steps per day from the new dataset are 10750 and 1
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-
+1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 ```{r, echo=TRUE}
+# create factor variable for Weekend vs. Weekday
+activity.imp$wend = as.factor(ifelse(weekdays(activity.imp$date) %in% 
+        c("Saturday","Sunday"), "Weekend", "Weekday")) 
+activity.WE=subset(activity.imp,wend=="Weekend")
+activity.WD=subset(activity.imp,wend=="Weekday")
+byWE.imp=ddply(activity.WE,"interval",summarize, avg=mean(imputed.steps))
+byWD.imp=ddply(activity.WD,"interval",summarize, avg=mean(imputed.steps))
 
 ```
 
+2.Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
 ```{r weekend_comparison, cache=TRUE, fig.width=10}
-
+library(gridExtra)
+ggWE=ggplot(byWE.imp, aes(x = interval, y = avg, group = 1))+ylim(0,250)+
+        geom_line(colour="blue")+ 
+        labs(title="Average Number of Steps per 5-minute Intervals\nWeekends")+
+        labs(x="5 minute interval",y="average number of steps")
+ggWE=ggWE+theme(plot.margin=unit(c(0,1,0,1), "cm"))
+ggWD=ggplot(byWD.imp, aes(x = interval, y = avg, group = 1))+ylim(0,250)+
+        geom_line(colour="salmon")+ 
+        labs(title="Average Number of Steps per 5-minute Intervals\nWeekdays")+
+        labs(x="5 minute interval",y="average number of steps")
+ggWD=ggWD+theme(plot.margin=unit(c(0,1,0,1), "cm"))
+grid.arrange(ggWE, ggWD, nrow=2, ncol=1)
 ```
